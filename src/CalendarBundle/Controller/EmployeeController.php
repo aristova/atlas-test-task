@@ -29,20 +29,27 @@ class EmployeeController extends FOSRestController
      */
     public function indexAction(Request $request)
     {
-        $employee = null;
-        $employees = null;
         $response = null;
         $repository =$this->getDoctrine()->getRepository('CalendarBundle:Employee');
 
-        $employees = $repository->findAll();
-        $response = ($employees == null) ? new View(
-          ["status" =>  "error", "message" => 'There are no employees exist'],
+        // If $request contains number or name return related employee.
+        if (!empty($request->get('number'))) {
+            $employee = $repository->findOneBy(array('number' => $request->get('number')));
+            $response = empty($employee) ? new View(["status" =>  "error", "message" => "Employee not found"], Response::HTTP_NOT_ACCEPTABLE) : new View($employee, Response::HTTP_OK);
+        } elseif (!empty($request->get('name'))) {
+            $employee = $repository->findOneBy(array('fullName' => $request->get('name')));
+            $response = empty($employee) ? new View(["status" =>  "error", "message" => "Employee not found"], Response::HTTP_NOT_ACCEPTABLE) : new View($employee, Response::HTTP_OK);
+        } else {
+            // If $request doesn't contains number or name return all employees.
+            $employees = $repository->findAll();
+            $response = ($employees == null) ? new View(
+                ['error' => 'There are no employees exist'],
               Response::HTTP_NOT_FOUND
             ) : new View(
                   $employees,
               Response::HTTP_OK
               );
-
+        }
 
         return $response;
     }

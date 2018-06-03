@@ -137,9 +137,4 @@ class Employee
     {
         return $this->note;
     }
-
-    public function getEntries()
-    {
-        return $this->entries;
-    }
 }

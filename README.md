@@ -20,6 +20,12 @@ curl  -H "Content-Type: application/json" -X GET http://127.0.0.1:8000/employee/
 Информация о всех сотрудниках:
 curl -H "Content-Type: application/json" -X GET http://127.0.0.1:8000/employee/
 
+Информация, отфильтрованная по табельному номеру сотрудника:
+curl -d '{"number":9666}' -H "Content-Type: application/json" -X POST http://127.0.0.1:8000/employee/
+
+Информация, отфильтрованная по фамилии сотрудника:
+curl -d '{"name":"Ivanov"}' -H "Content-Type: application/json" -X POST http://127.0.0.1:8000/employee/
+
 Редактирование:
 curl -d '{"name":"Petrov", "note":"The best doctor"}' -H "Content-Type: application/json" -X PUT http://127.0.0.1:8000/employee/1/edit
 
