@@ -1,0 +1,24 @@
+entry_index:
+    path:     /
+    defaults: { _controller: "CalendarBundle:Entry:index" }
+    methods:  GET
+
+entry_show:
+    path:     /{id}/show
+    defaults: { _controller: "CalendarBundle:Entry:show" }
+    methods:  GET
+
+entry_new:
+    path:     /new
+    defaults: { _controller: "CalendarBundle:Entry:new" }
+    methods:  [GET, POST]
+
+entry_edit:
+    path:     /{id}/edit
+    defaults: { _controller: "CalendarBundle:Entry:edit" }
+    methods:  [GET, POST]
+
+entry_delete:
+    path:     /{id}/delete
+    defaults: { _controller: "CalendarBundle:Entry:delete" }
+    methods:  DELETE

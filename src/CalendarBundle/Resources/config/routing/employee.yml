@@ -1,0 +1,24 @@
+employee_index:
+    path:     /
+    defaults: { _controller: "CalendarBundle:Employee:index" }
+    methods:  GET
+
+employee_show:
+    path:     /{id}/show
+    defaults: { _controller: "CalendarBundle:Employee:show" }
+    methods:  GET
+
+employee_new:
+    path:     /new
+    defaults: { _controller: "CalendarBundle:Employee:new" }
+    methods:  [GET, POST]
+
+employee_edit:
+    path:     /{id}/edit
+    defaults: { _controller: "CalendarBundle:Employee:edit" }
+    methods:  [GET, POST]
+
+employee_delete:
+    path:     /{id}/delete
+    defaults: { _controller: "CalendarBundle:Employee:delete" }
+    methods:  DELETE

@@ -1,0 +1,10 @@
+calendar_employee:
+    resource: "@CalendarBundle/Resources/config/routing/employee.yml"
+    prefix:   /employee
+calendar_entry:
+    resource: "@CalendarBundle/Resources/config/routing/entry.yml"
+    prefix:   /entry
+
+calendar_homepage:
+    path:     /
+    defaults: { _controller: CalendarBundle:Default:index }
