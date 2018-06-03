@@ -6,6 +6,7 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\FOSRestController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use FOS\RestBundle\View\View;
 
 class DefaultController extends FOSRestController
 {
@@ -14,8 +15,6 @@ class DefaultController extends FOSRestController
      */
     public function indexAction(Request $request)
     {
-        $data = ['hello' => 'world'];
-        $view = $this->view($data, Response::HTTP_OK);
-        return $view;
+        return new View(["status" => "success"], Response::HTTP_OK);
     }
 }

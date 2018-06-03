@@ -155,61 +155,51 @@ class EntryController extends Controller
      */
     public function editAction(Request $request, $id)
     {
-
-        // curl -d '{"number":56, "status":"sick", "from":"1528029333", "to":"1537943333"}' -H "Content-Type: application/json" -X PUT http://127.0.0.1:8000/entry/50/edit
         $response = null;
 
         $em = $this->getDoctrine()->getManager();
         $entry = $this->getDoctrine()->getRepository('CalendarBundle:Entry')->find($id);
         if (empty($entry)) {
-            $response = new View(["status" =>  "error", "message" => "Entry not found"], Response::HTTP_NOT_FOUND);
-        } else {
-            // Allow to create entry only by employee number.
-            if (empty($request->get('number'))) {
-                $response = new View(["status" =>  "error", "message" => "Enter the employee's number"], Response::HTTP_NOT_ACCEPTABLE);
-                return $response;
-            }
-
-            // Find employee
-            $repository = $this->getDoctrine()->getRepository('CalendarBundle:Employee');
+            return new View(["status" =>  "error", "message" => "Entry not found"], Response::HTTP_NOT_FOUND);
+        }
+        // Find employee
+        if (!empty($request->get('number'))) {
+            $repository = $this->getDoctrine()
+                  ->getRepository('CalendarBundle:Employee');
             $employee = $repository->findOneBy(['number' => $request->get('number')]);
 
             if (empty($employee)) {
-                $response = new View(["status" =>  "error", "message" => "Employee not found"], Response::HTTP_NOT_ACCEPTABLE);
+                $response = new View([
+                      "status" => "error",
+                      "message" => "Employee not found"
+                    ], Response::HTTP_NOT_ACCEPTABLE);
                 return $response;
             }
+            $entry->setEmployee($employee);
+        }
 
-            if (!empty($request->get('status'))) {
-                // Allowed statuses.
-                $statuses = ["holiday", "sick", "operating", "admission"];
+        if (!empty($request->get('status'))) {
+            // Allowed statuses.
+            $statuses = ["holiday", "sick", "operating", "admission"];
 
-                if (!in_array($request->get('status'), $statuses)) {
-                    $response = new View([
+            if (!in_array($request->get('status'), $statuses)) {
+                $response = new View([
                       "status" => "error",
                       "message" => "Incorrect entry status"
                     ], Response::HTTP_NOT_ACCEPTABLE);
-                    return $response;
-                }
-
-                $entry->setStatus($request->get('status'));
+                return $response;
             }
 
-
-            if (!empty($request->get('number'))) {
-                $repository = $this->getDoctrine()->getRepository('CalendarBundle:Employee');
-                $employee = $repository->findOneBy(array('number' => $request->get('number')));
-                if (empty($employee)) {
-                    $response = new View(["status" =>  "error", "message" => "Enter the employee's number"], Response::HTTP_NOT_ACCEPTABLE);
-                    return $response;
-                }
-                $entry->setEmployee($employee);
-            }
-
-
-
-            $em->flush();
-            $response = $this->getDoctrine()->getRepository('CalendarBundle:Entry')->find($id);
+            $entry->setStatus($request->get('status'));
         }
+
+        try {
+            $em->flush();
+        } catch (\Exception $e) {
+            return new View(["status" =>  "error"], Response::HTTP_NOT_ACCEPTABLE);
+        }
+        $response = $this->getDoctrine()->getRepository('CalendarBundle:Entry')->find($id);
+
         return $response;
     }
 

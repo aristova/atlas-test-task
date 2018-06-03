@@ -78,7 +78,12 @@ class EmployeeController extends FOSRestController
         $employee->setNote($note);
         $em = $this->getDoctrine()->getManager();
         $em->persist($employee);
-        $em->flush();
+
+        try {
+            $em->flush();
+        } catch (\Exception $e) {
+            return new View(["status" =>  "error", "message" => "The employee is already exists"], Response::HTTP_NOT_ACCEPTABLE);
+        }
 
         $newEmployee = $this->getDoctrine()->getRepository('CalendarBundle:Employee')->find($employee->getId());
         $response = new View($newEmployee, Response::HTTP_CREATED);
@@ -116,7 +121,6 @@ class EmployeeController extends FOSRestController
      */
     public function editAction($id, Request $request)
     {
-        // curl -d '{"name":"333i", "note":"JJJFJJFJFF"}'  -H "Content-Type: application/json" -X PUT http://127.0.0.1:8000/employee/13/edit
         $response = null;
         $name = $request->get('name');
         $note = $request->get('note');
