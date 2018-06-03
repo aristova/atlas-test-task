@@ -12,7 +12,7 @@
 
 **Сотрудники**
 Создание:
-curl -d '{"name":"Ivanov", "number":666}' -H "Content-Type: application/json" -X POST http://127.0.0.1:8000/employee/new
+curl -d '{"name":"Ivanov", "number":666, "note":"The best doctor"}' -H "Content-Type: application/json" -X POST http://127.0.0.1:8000/employee/new
 
 Информация об одном сотруднике:
 curl  -H "Content-Type: application/json" -X GET http://127.0.0.1:8000/employee/1
