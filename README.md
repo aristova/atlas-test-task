@@ -1,5 +1,10 @@
 Установка
 ---------
+1. git clone https://github.com/aristova/atlas-test-task.git
+2. В корне проекта выполнить composer install
+3. Создать базу данных php bin/console doctrine:database:create
+4. Обновить структуру базы данных php bin/console doctrine:schema:update --force
+5. Запустить локальный веб-сервер php bin/console server:run
 
 
 Примеры использования
