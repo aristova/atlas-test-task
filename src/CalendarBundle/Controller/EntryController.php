@@ -25,7 +25,7 @@ class EntryController extends Controller
      * Lists all entry entities.
      *
      * @Route("/", name="entry_index")
-     * @Method("GET")
+     * @Method({"GET", "POST"})
      * @param \Symfony\Component\HttpFoundation\Request $request
      * @return \FOS\RestBundle\View\View
      */
@@ -36,8 +36,38 @@ class EntryController extends Controller
         $response = null;
         $repository =$this->getDoctrine()->getRepository('CalendarBundle:Entry');
 
-        $entries = $repository->findAll();
+        // If $request has full name of employee and/or period show filtred result
+        if (!empty($request->get('name'))) {
+            $employeeRepository =$this->getDoctrine()->getRepository('CalendarBundle:Employee');
+            $employee = $employeeRepository->findOneBy(array('fullName' => $request->get('name')));
 
+            if (empty($employee)) {
+                return new View(["status" =>  "error", "message" => "Employee not found"], Response::HTTP_NOT_ACCEPTABLE);
+            }
+
+            // Check interval between times for employee.
+            if (!empty($request->get('from')) && !empty($request->get('to')) && !empty($employee)) {
+                $dateTimeFrom = new \DateTime();
+                $dateTimeFrom->setTimestamp($request->get('from'));
+
+                $dateTimeTo = new \DateTime();
+                $dateTimeTo->setTimestamp($request->get('to'));
+
+                $timeTo = $dateTimeTo->format('Y-m-d H:i:sP');
+                $timeFrom = $dateTimeFrom->format('Y-m-d H:i:sP');
+
+                // Find all entries of employee between dates
+                $entriesOfPeriod = $repository->findAllEntriesByDate($employee->getId(), $timeFrom, $timeTo);
+
+                return new View($entriesOfPeriod, Response::HTTP_OK);
+            }
+
+            return new View($employee, Response::HTTP_OK);
+        }
+
+
+        // Show all results if $request doesn't contain name and period.
+        $entries = $repository->findAll();
         $response = ($entries == null) ? new View(
             ["status" =>  "error", "message" => 'There are no entries exist'],
               Response::HTTP_NOT_FOUND
@@ -77,6 +107,36 @@ class EntryController extends Controller
             return $response;
         }
 
+        // Check interval between dates.
+        $dateTimeFrom = new \DateTime();
+        $dateTimeFrom->setTimestamp($request->get('from'));
+
+        $dateTimeTo = new \DateTime();
+        $dateTimeTo->setTimestamp($request->get('to'));
+
+        $interval = $dateTimeFrom->diff($dateTimeTo);
+        $intervalDays = $interval->format("%R%a");
+
+        if ($intervalDays < 0) {
+            $response = new View(["status" =>  "error", "message" => "Incorrect period of time"], Response::HTTP_NOT_ACCEPTABLE);
+            return $response;
+        }
+
+        $timeTo = $dateTimeTo->format('Y-m-d H:i:sP');
+        $timeFrom = $dateTimeFrom->format('Y-m-d H:i:sP');
+
+        $dayFrom = $dateTimeFrom->format('Y-m-d');
+
+        // Don't allow to create entry if the employee already has the sum of entries is 8 hours in the day.
+        $entryRepository =$this->getDoctrine()->getRepository('CalendarBundle:Entry');
+
+        $hoursOfDay = $entryRepository->findAllEntriesByEmployee($employee->getId(), $dayFrom);
+
+        if (!empty($hoursOfDay) && $hoursOfDay >= 8) {
+            $response = new View(["status" =>  "error", "message" => "The sum of entry of employee can't be more than 8 hours in this day"], Response::HTTP_NOT_ACCEPTABLE);
+            return $response;
+        }
+
         // Allowed statuses.
         $statuses =  ["holiday", "sick", "operating", "admission"];
 
@@ -86,27 +146,9 @@ class EntryController extends Controller
             return $response;
         }
 
-        $dateTimeFrom = new \DateTime();
-        $dateTimeFrom->setTimestamp($request->get('from'));
-
-        $dateTimeTo = new \DateTime();
-        $dateTimeTo->setTimestamp($request->get('to'));
-
-        // Check interval between dates.
-        $interval = $dateTimeFrom->diff($dateTimeTo);
-        $intervalDays = $interval->format("%R%a");
-
-        if ($intervalDays < 0) {
-            $response = new View(["status" =>  "error", "message" => "Incorrect period of time"], Response::HTTP_NOT_ACCEPTABLE);
-            return $response;
-        }
-
-        $a = $dateTimeTo->format('Y-m-d H:i:sP');
-        $b = $dateTimeFrom->format('Y-m-d H:i:sP');
-
         $entry = new Entry();
-        $entry->setDateFrom(new \DateTime($b));
-        $entry->setDateTo(new \DateTime($a));
+        $entry->setDateFrom(new \DateTime($timeFrom));
+        $entry->setDateTo(new \DateTime($timeTo));
         $entry->setStatus($status);
         // Relates this entry to the employee
         $entry->setEmployee($employee);

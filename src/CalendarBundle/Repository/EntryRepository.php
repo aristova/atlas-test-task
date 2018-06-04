@@ -10,4 +10,41 @@ namespace CalendarBundle\Repository;
  */
 class EntryRepository extends \Doctrine\ORM\EntityRepository
 {
+    /**
+     * Find all entries of employee on the day.
+     *
+     * @param int $employeeId
+     * @param string $day
+     * @return string
+     */
+    public function findAllEntriesByEmployee(int $employeeId, string $dayOfEntry)
+    {
+        $emConfig = $this->getEntityManager()->getConfiguration();
+        $emConfig->addCustomDatetimeFunction('DATE_FORMAT', 'DoctrineExtensions\Query\Mysql\DateFormat');
+        $emConfig->addCustomDatetimeFunction('TIMEDIFF', 'DoctrineExtensions\Query\Mysql\TimeDiff');
+
+        $db = $this->getEntityManager();
+        $query = $db->createQuery("SELECT DATE_FORMAT(e.dateFrom, '%Y-%m-%d') AS date, SUM(TIMEDIFF(e.dateTo, e.dateFrom)) / 10000 AS diff FROM CalendarBundle:Entry e WHERE e.employee = :employeeId GROUP BY date HAVING date = :day")->setParameters(['day'=> $dayOfEntry, 'employeeId' => $employeeId]);
+        $result = $query->getResult();
+
+        $hoursOfDay = $result[0]["diff"] ?? "";
+
+        return $hoursOfDay;
+    }
+
+    /**
+     * Find all entry of employee between times
+     *
+     * @param int $employeeId
+     * @param string $dateFrom
+     * @param string $dateTo
+     * @return array|string
+     */
+    public function findAllEntriesByDate(int $employeeId, string $dateFrom, string $dateTo)
+    {
+        $db = $this->getEntityManager();
+        $query = $db->createQuery("SELECT e.id FROM CalendarBundle:Entry e WHERE e.employee = :employeeId AND e.dateFrom >= :dateFrom AND e.dateTo <= :dateTo")->setParameters(['employeeId' => $employeeId, 'dateFrom' => $dateFrom, 'dateTo' => $dateTo]);
+        $result = $query->getArrayResult();
+        return  $result ?? "";
+    }
 }
