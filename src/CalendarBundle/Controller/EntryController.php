@@ -101,12 +101,12 @@ class EntryController extends Controller
             return $response;
         }
 
-        $a = $dateTimeTo->format('Y-m-d H:i:sP');
-        $b = $dateTimeFrom->format('Y-m-d H:i:sP');
+        $timeTo = $dateTimeTo->format('Y-m-d H:i:sP');
+        $timeFrom = $dateTimeFrom->format('Y-m-d H:i:sP');
 
         $entry = new Entry();
-        $entry->setDateFrom(new \DateTime($b));
-        $entry->setDateTo(new \DateTime($a));
+        $entry->setDateFrom(new \DateTime($timeFrom));
+        $entry->setDateTo(new \DateTime($timeTo));
         $entry->setStatus($status);
         // Relates this entry to the employee
         $entry->setEmployee($employee);
